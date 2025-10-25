@@ -1011,6 +1011,86 @@ body {
     padding: 0 15px;
     color: var(--gray-color);
 }
+/* Admin Dashboard Styles */
+.admin-modal-content {
+    max-width: 90%;
+    width: 1200px;
+    max-height: 90vh;
+}
+
+.admin-tabs {
+    display: flex;
+    border-bottom: 2px solid #ddd;
+    margin-bottom: 20px;
+}
+
+.admin-tab-btn {
+    padding: 12px 24px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    border-bottom: 3px solid transparent;
+}
+
+.admin-tab-btn.active {
+    border-bottom-color: #e74c3c;
+    color: #e74c3c;
+    font-weight: 600;
+}
+
+.tab-pane {
+    display: none;
+}
+
+.tab-pane.active {
+    display: block;
+}
+
+.admin-table-container {
+    overflow-x: auto;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+.admin-table th,
+.admin-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.admin-table th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    position: sticky;
+    top: 0;
+}
+
+.status-badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.status-badge.confirmed,
+.status-badge.delivered {
+    background-color: #d4edda;
+    color: #2b1557;
+}
+
+.status-badge.pending,
+.status-badge.preparing {
+    background-color: #fff3cd;
+    color: #856404;
+}
 
 /* Cart Sidebar */
 .cart-sidebar {

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html>//index.html friday
 <html lang="en">
 
 <head>
@@ -32,7 +32,7 @@
                         <input type="text" placeholder="Search items..." id="search-bar">
                         <button id="search-btn"><i class="fas fa-search"></i></button>
 
-                    <li><a href="#" class="nav-link" id="wishlist-link"><i class="far fa-heart"></i></a></li>
+                    <li><a href="#" class="nav-link" id="admin-link">Admin</a></li>
                     <li><a href="#" class="nav-link" id="cart-link"><i class="fas fa-shopping-cart"></i> <span
                                 class="cart-count">0</span></a></li>
                     <li><a href="#" class="nav-link" id="login-link">Login</a></li>
@@ -175,7 +175,7 @@
                 </div>
 
                 <div class="booking-form">
-                    <form id="table-booking-form">
+                    1 <form id="table-booking-form" action="book_table.php" method="POST">
                         <div class="form-group">
                             <label for="name">Full Name</label>
                             <input type="text" id="name" name="name" required>
@@ -320,25 +320,26 @@
         <div class="modal-content login-modal-content">
             <span class="close">&times;</span>
             <div class="login-container">
-                <div class="login-background" id="login-background">
-                    <!-- Animated background will be created with JavaScript -->
-                </div>
+                <div class="login-background" id="login-background"></div>
                 <div class="login-form">
                     <h2>Welcome Back!</h2>
                     <p>Login to your account</p>
-                    <form id="login-form" method="POST" action="login.php">
+                    <form id="login-form">
                         <div class="form-group">
-                            <input type="email" id="login-email" name="email" placeholder="Email Address" required>
+                            <input type="email" id="email" name="email" placeholder="Email Address" required>
                             <i class="fas fa-envelope"></i>
                         </div>
                         <div class="form-group">
-                            <input type="password" id="login-password" name="password" placeholder="Password" required>
+                            <input type="password" id="password" name="password" placeholder="Password" required>
                             <i class="fas fa-lock"></i>
                         </div>
                         <button type="submit" class="btn btn-primary btn-full">Login</button>
                     </form>
                     <div class="login-options">
-                        <a href="#">Forgot Password?</a>
+                        <a href="#" id="forgot-password-link"
+                            style="color: #007bff; text-decoration: none; font-weight: 500;">
+                            Forgot Password?
+                        </a>
                     </div>
                     <div class="divider">
                         <span>or</span>
@@ -348,8 +349,76 @@
             </div>
         </div>
     </div>
+    <!-- Add this FORGOT PASSWORD MODAL HTML right after your login modal: -->
+<div id="forgot-password-modal" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 400px; border-radius: 15px;">
+        <span class="close-forgot" style="position: absolute; right: 20px; top: 20px; font-size: 24px; cursor: pointer;">&times;</span>
+        
+        <div style="padding: 40px 30px; text-align: center;">
+            <!-- Logo/Icon -->
+            <div style="margin-bottom: 20px;">
+                <div style="width: 60px; height: 60px; background: #007bff; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; color: white; font-size: 24px; font-weight: bold;">
+                    Pi
+                </div>
+            </div>
+            
+            <h2 style="margin-bottom: 10px; color: #333; font-size: 24px;">Reset password</h2>
+            <p style="color: #666; margin-bottom: 30px; font-size: 14px;">Enter your email to reset your password</p>
+            
+            <form id="forgot-password-form">
+                <div class="form-group" style="margin-bottom: 25px;">
+                    <input type="email" id="forgot-email" placeholder="Enter your email address" required 
+                        style="width: 100%; padding: 15px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 16px; transition: border-color 0.3s;">
+                </div>
+                
+                <button type="submit" 
+                    style="width: 100%; padding: 15px; background: #007bff; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; transition: background 0.3s;">
+                    Next step
+                </button>
+            </form>
+            
+            <div style="margin-top: 25px; padding-top: 20px; border-top: 1px solid #f0f0f0;">
+                <p style="color: #666; font-size: 14px;">
+                    Do you remember your password? 
+                    <a href="#" id="back-to-login" style="color: #007bff; text-decoration: none; font-weight: 500;">Go login</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
 
+<!-- Add this SUCCESS MESSAGE MODAL HTML: -->
+<div id="forgot-password-success" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 400px; border-radius: 15px;">
+        <div style="padding: 40px 30px; text-align: center;">
+            <!-- Success Icon -->
+            <div style="margin-bottom: 20px;">
+                <div style="width: 60px; height: 60px; background: #4CAF50; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; color: white; font-size: 24px;">
+                    ✓
+                </div>
+            </div>
+            
+            <h2 style="margin-bottom: 15px; color: #333; font-size: 24px;">Check your email</h2>
+            <p style="color: #666; margin-bottom: 10px; font-size: 16px; font-weight: 500;">We've sent a password reset link to</p>
+            <p id="sent-email" style="color: #007bff; margin-bottom: 25px; font-size: 16px; font-weight: 600;">user@example.com</p>
+            
+            <p style="color: #888; margin-bottom: 30px; font-size: 14px;">
+                Didn't receive the email? Check your spam folder or 
+                <a href="#" id="resend-email" style="color: #007bff; text-decoration: none;">resend</a>
+            </p>
+            
+            <button onclick="closeSuccessModal()" 
+                style="width: 100%; padding: 15px; background: #f8f9fa; color: #333; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer;">
+                Back to Login
+            </button>
+        </div>
+    </div>
+</div>
     <!-- Register Modal -->
+    <!-- Add this inside your form, after the heading -->
+    <div id="error-message"
+        style="display: none; color: red; background: #ffe6e6; padding: 10px; border-radius: 5px; margin-bottom: 15px;">
+    </div>
     <div id="register-modal" class="modal">
         <div class="modal-content register-modal-content">
             <span class="close">&times;</span>
@@ -389,6 +458,117 @@
             </div>
         </div>
     </div>
+    <!-- Forgot Password Modal -->
+    <div id="forgot-password-modal" class="modal">
+        <div class="modal-content" style="max-width: 400px;">
+            <span class="close">&times;</span>
+            <div class="forgot-password-form">
+                <h2 style="margin-bottom: 20px; text-align: center;">Forgot Password</h2>
+                <p style="text-align: center; margin-bottom: 20px; color: #666;">Enter your email to reset your password
+                </p>
+                <form id="forgot-password-form">
+                    <div class="form-group">
+                        <label for="forgot-email" style="display: block; margin-bottom: 5px; font-weight: 500;">Email
+                            Address</label>
+                        <input type="email" id="forgot-email" required
+                            style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px;">
+                    </div>
+                    <button type="submit"
+                        style="width: 100%; padding: 12px; background: #e74c3c; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; margin-top: 15px;">
+                        Reset Password
+                    </button>
+                </form>
+                <p style="margin-top: 15px; font-size: 14px; color: #666; text-align: center;">
+                    We'll send you instructions to reset your password.
+                </p>
+                <p style="text-align: center; margin-top: 15px;">
+                    <a href="#" id="back-to-login" style="color: #e74c3c; text-decoration: none;">Back to Login</a>
+                </p>
+            </div>
+        </div>
+    </div>
+    <!-- Admin Dashboard Modal -->
+    <div id="admin-modal" class="modal">
+        <div class="modal-content admin-modal-content">
+            <span class="close">&times;</span>
+            <div class="admin-container">
+                <h2>Admin Dashboard</h2>
+
+                <div class="admin-tabs">
+                    <button class="admin-tab-btn active" data-tab="users">Users</button>
+                    <button class="admin-tab-btn" data-tab="bookings">Table Bookings</button>
+                    <button class="admin-tab-btn" data-tab="orders">Orders</button>
+                </div>
+
+                <div class="admin-tab-content">
+                    <!-- Users Tab -->
+                    <div id="users-tab" class="tab-pane active">
+                        <h3>Registered Users</h3>
+                        <div class="admin-table-container">
+                            <table class="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Phone</th>
+                                        <th>Join Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="users-table-body">
+                                    <!-- Users data will be loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Bookings Tab -->
+                    <div id="bookings-tab" class="tab-pane">
+                        <h3>Table Bookings</h3>
+                        <div class="admin-table-container">
+                            <table class="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>Booking ID</th>
+                                        <th>Name</th>
+                                        <th>Date</th>
+                                        <th>Time</th>
+                                        <th>Guests</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="bookings-table-body">
+                                    <!-- Bookings data will be loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Orders Tab -->
+                    <div id="orders-tab" class="tab-pane">
+                        <h3>Customer Orders</h3>
+                        <div class="admin-table-container">
+                            <table class="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>Order ID</th>
+                                        <th>Customer</th>
+                                        <th>Items</th>
+                                        <th>Total</th>
+                                        <th>Status</th>
+                                        <th>Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="orders-table-body">
+                                    <!-- Orders data will be loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Cart Sidebar -->
     <div id="cart-sidebar" class="cart-sidebar">
@@ -412,48 +592,60 @@
                 </div>
             </div>
 
-            <button class="btn btn-primary" id="checkout-btn" style="width: 90%; margin: 20px auto; display: block;">Proceed to Checkout</button>
+            <button class="btn btn-primary" id="checkout-btn"
+                style="width: 90%; margin: 20px auto; display: block;">Proceed to Checkout</button>
         </div>
     </div>
 
     <!-- Address Modal -->
-<div id="address-modal" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);">
-    <div class="modal-content address-modal-content" style="background-color: #fefefe; margin: 5% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 500px; max-height: 80vh; overflow-y: auto;">
-        <span class="close" style="color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer;">&times;</span>
-        <div class="address-form-container">
-            <h4>Delivery Address</h4>
-            <form id="delivery-address-form" method="POST" action="save_address.php">
-                <div class="form-group">
-                    <label for="delivery-name">Full Name *</label>
-                    <input type="text" id="delivery-name" name="delivery_name" required style="width: 100%; padding: 8px; margin: 5px 0 15px 0; display: inline-block; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;">
-                </div>
-                <div class="form-group">
-                    <label for="delivery-phone">Phone Number *</label>
-                    <input type="tel" id="delivery-phone" name="delivery_phone" pattern="[0-9]{10}" required style="width: 100%; padding: 8px; margin: 5px 0 15px 0; display: inline-block; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;">
-                </div>
-                <div class="form-group">
-                    <label for="delivery-address">Full Address *</label>
-                    <textarea id="delivery-address" name="delivery_address" rows="3" required style="width: 100%; padding: 8px; margin: 5px 0 15px 0; display: inline-block; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;"></textarea>
-                </div>
-                <div class="form-group">
-                    <label for="delivery-city">City *</label>
-                    <input type="text" id="delivery-city" name="delivery_city" required style="width: 100%; padding: 8px; margin: 5px 0 15px 0; display: inline-block; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;">
-                </div>
-                <div class="form-group">
-                    <label for="delivery-pincode">Pincode *</label>
-                    <input type="text" id="delivery-pincode" name="delivery_pincode" pattern="[0-9]{6}" required style="width: 100%; padding: 8px; margin: 5px 0 15px 0; display: inline-block; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;">
-                </div>
-                <div class="form-group">
-                    <label for="delivery-landmark">Landmark (Optional)</label>
-                    <input type="text" id="delivery-landmark" name="delivery_landmark" style="width: 100%; padding: 8px; margin: 5px 0 15px 0; display: inline-block; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;">
-                </div>
-                <div class="form-buttons">
-                    <button type="submit" class="btn btn-primary" style="background-color: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer;">Place Order</button>
-                </div>
-            </form>
+    <div id="address-modal" class="modal"
+        style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);">
+        <div class="modal-content address-modal-content"
+            style="background-color: #fefefe; margin: 5% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 500px; max-height: 80vh; overflow-y: auto;">
+            <span class="close"
+                style="color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer;">&times;</span>
+            <div class="address-form-container">
+                <h4>Delivery Address</h4>
+                <form id="delivery-address-form" method="POST" action="save_address.php">
+                    <div class="form-group">
+                        <label for="delivery-name">Full Name *</label>
+                        <input type="text" id="delivery-name" name="delivery_name" required
+                            style="width: 100%; padding: 8px; margin: 5px 0 15px 0; display: inline-block; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;">
+                    </div>
+                    <div class="form-group">
+                        <label for="delivery-phone">Phone Number *</label>
+                        <input type="tel" id="delivery-phone" name="delivery_phone" pattern="[0-9]{10}" required
+                            style="width: 100%; padding: 8px; margin: 5px 0 15px 0; display: inline-block; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;">
+                    </div>
+                    <div class="form-group">
+                        <label for="delivery-address">Full Address *</label>
+                        <textarea id="delivery-address" name="delivery_address" rows="3" required
+                            style="width: 100%; padding: 8px; margin: 5px 0 15px 0; display: inline-block; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="delivery-city">City *</label>
+                        <input type="text" id="delivery-city" name="delivery_city" required
+                            style="width: 100%; padding: 8px; margin: 5px 0 15px 0; display: inline-block; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;">
+                    </div>
+                    <div class="form-group">
+                        <label for="delivery-pincode">Pincode *</label>
+                        <input type="text" id="delivery-pincode" name="delivery_pincode" pattern="[0-9]{6}" required
+                            style="width: 100%; padding: 8px; margin: 5px 0 15px 0; display: inline-block; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;">
+                    </div>
+                    <div class="form-group">
+                        <label for="delivery-landmark">Landmark (Optional)</label>
+                        <input type="text" id="delivery-landmark" name="delivery_landmark"
+                            style="width: 100%; padding: 8px; margin: 5px 0 15px 0; display: inline-block; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;">
+                    </div>
+                    <div class="form-buttons">
+                        <button type="submit" class="btn btn-primary"
+                            style="background-color: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer;">Place
+                            Order</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
-</div>
 
     <!-- Order Confirmation Modal -->
     <div id="order-confirmation-modal" class="modal">

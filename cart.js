@@ -60,7 +60,6 @@ function proceedToCheckout() {
 
 function placeOrder() {
     const addressForm = document.getElementById('delivery-address-form');
-    const formData = new FormData(addressForm);
     const cart = JSON.parse(localStorage.getItem('cart')) || [];
 
     // Basic validation
@@ -94,13 +93,22 @@ function placeOrder() {
         return;
     }
 
+    // FIXED: Create formData properly
+    const formData = new FormData(addressForm);
+    const deliveryDetails = {};
+    
+    // Convert FormData to regular object
+    for (let [key, value] of formData.entries()) {
+        deliveryDetails[key] = value;
+    }
+
     // Prepare data to send to the server
     const orderData = {
         cart: cart,
-        deliveryDetails: Object.fromEntries(formData)
+        deliveryDetails: deliveryDetails  // FIXED: Use the created object
     };
 
-    // Send data to the server
+    // Send data to the server - FIXED: Use relative path
     fetch('process_order.php', {
         method: 'POST',
         headers: {
@@ -108,7 +116,12 @@ function placeOrder() {
         },
         body: JSON.stringify(orderData),
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
     .then(data => {
         if (data.success) {
             // Clear cart from localStorage
@@ -228,7 +241,7 @@ function updateCartDisplay() {
     }
 
     // Calculate tax and total
-    const tax = subtotal * 0.05;
+    const tax = subtotal * 0.02;
     const total = subtotal + tax;
 
     // Update totals

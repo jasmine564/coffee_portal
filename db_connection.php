@@ -2,7 +2,7 @@
 $servername = "localhost";
 $username = "root"; // default XAMPP username
 $password = ""; // default XAMPP password
-$dbname = "student";
+$dbname = "class_student";
 
 // Create connection
 $conn = new mysqli($servername, $username, $password, $dbname);
@@ -11,4 +11,7 @@ $conn = new mysqli($servername, $username, $password, $dbname);
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
+// Set charset to utf8
+$conn->set_charset("utf8mb4");
+
 ?>

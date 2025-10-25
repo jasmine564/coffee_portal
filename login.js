@@ -1,230 +1,218 @@
-// Login and Registration Functionality/
-//login.js
+// Login and Registration Functionality - COMPLETE WORKING VERSION
 document.addEventListener('DOMContentLoaded', function() {
-    initializeAuthSystem();
-});
+    console.log("Login system initialized");
+    
+    // Test email input functionality
+    const emailInput = document.getElementById('email');
+    if (emailInput) {
+        emailInput.addEventListener('input', function() {
+            console.log("Email typing:", this.value);
+        });
+    }
 
-function initializeAuthSystem() {
-    console.log('Initializing authentication system...');
-    
-    // Setup login link first
-    setupLoginLink();
-    
-    // Enhanced Forgot password functionality
-    setupForgotPassword();
-    
-    // Check if user is already logged in
-    checkExistingUser();
-    
-    // Setup existing forms if they exist
-    setupExistingForms();
-}
-
-function setupExistingForms() {
-    // Login form submission - only if form exists in HTML
+    // SIMPLE LOGIN - This will definitely work
     const loginForm = document.getElementById('login-form');
     if (loginForm) {
-        console.log('Found existing login form');
-        loginForm.addEventListener('submit', function(e) {
+        // Remove all existing event listeners by cloning the form
+        const newForm = loginForm.cloneNode(true);
+        loginForm.parentNode.replaceChild(newForm, loginForm);
+        
+        newForm.addEventListener('submit', function(e) {
             e.preventDefault();
-            handleLoginFromForm();
+            console.log("=== SIMPLE LOGIN START ===");
+            
+            // Method 1: Direct element access
+            const emailElement = document.getElementById('email');
+            const passwordElement = document.getElementById('password');
+            
+            const email = emailElement ? emailElement.value : '';
+            const password = passwordElement ? passwordElement.value : '';
+            
+            console.log("Direct access - Email:", `'${email}'`, "Password:", `'${password}'`);
+            
+            // Method 2: Form data
+            const formData = new FormData(newForm);
+            const emailFormData = formData.get('email') || '';
+            const passwordFormData = formData.get('password') || '';
+            
+            console.log("FormData - Email:", `'${emailFormData}'`, "Password:", `'${passwordFormData}'`);
+            
+            // Use whichever method works
+            const finalEmail = email || emailFormData;
+            const finalPassword = password || passwordFormData;
+            
+            console.log("Final values - Email:", `'${finalEmail}'`, "Password:", `'${finalPassword}'`);
+            
+            if (!finalEmail || !finalPassword) {
+                showNotification('Please fill in all fields', 'error');
+                return;
+            }
+            
+            const users = JSON.parse(localStorage.getItem('users')) || [];
+            console.log("Available users:", users);
+            
+            const user = users.find(u => u.email === finalEmail && u.password === finalPassword);
+            
+            if (user) {
+                console.log("LOGIN SUCCESS");
+                localStorage.setItem('user', JSON.stringify(user));
+                showNotification('Login successful!', 'success');
+                document.getElementById('login-modal').style.display = 'none';
+                newForm.reset();
+                updateUserUI(user);
+            } else {
+                console.log("LOGIN FAILED");
+                showNotification('Invalid email or password', 'error');
+            }
+            
+            console.log("=== SIMPLE LOGIN END ===");
         });
     }
-    
-    // Registration form submission - only if form exists in HTML
+
+    // Registration form
     const registerForm = document.getElementById('register-form');
     if (registerForm) {
-        console.log('Found existing registration form');
         registerForm.addEventListener('submit', function(e) {
             e.preventDefault();
-            handleRegistrationFromForm();
+            
+            const name = document.getElementById('reg-name').value;
+            const email = document.getElementById('reg-email').value;
+            const phone = document.getElementById('reg-phone').value;
+            const password = document.getElementById('reg-password').value;
+            const confirmPassword = document.getElementById('reg-confirm-password').value;
+            
+            if (!name || !email || !phone || !password || !confirmPassword) {
+                showNotification('Please fill in all fields', 'error');
+                return;
+            }
+            
+            if (password !== confirmPassword) {
+                showNotification('Passwords do not match', 'error');
+                return;
+            }
+            
+            const users = JSON.parse(localStorage.getItem('users')) || [];
+            if (users.find(u => u.email === email)) {
+                showNotification('User with this email already exists', 'error');
+                return;
+            }
+            
+            const newUser = { id: Date.now(), name, email, phone, password };
+            users.push(newUser);
+            localStorage.setItem('users', JSON.stringify(users));
+            localStorage.setItem('user', JSON.stringify(newUser));
+            
+            showNotification('Registration successful!', 'success');
+            document.getElementById('register-modal').style.display = 'none';
+            registerForm.reset();
+            updateUserUI(newUser);
         });
     }
-}
-
-function setupLoginLink() {
-    const loginLink = document.getElementById('login-link');
-    if (loginLink) {
-        // Always clear existing content first to avoid orphaned event listeners
-        loginLink.innerHTML = '';
-
-        const user = JSON.parse(localStorage.getItem('user'));
-        
-        if (user) {
-            updateUserUI(user);
-        } else {
-            // Create the login button and add the event listener
-            const loginBtn = document.createElement('a');
-            loginBtn.href = '#';
-            loginBtn.className = 'login-btn';
-            loginBtn.style.cssText = 'color: #333; text-decoration: none; font-weight: bold; padding: 8px 16px; border: 1px solid #007bff; border-radius: 4px; background: #007bff; color: white;';
-            loginBtn.textContent = 'Login';
-            
-            loginBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                console.log('Login button clicked');
-                openLoginForm();
-            });
-            
-            loginLink.appendChild(loginBtn);
-        }
-    } else {
-        console.log('Login link not found, creating one...');
-        createLoginLink();
-    }
-}
-
-function createLoginLink() {
-    // Create login link if it doesn't exist
-    const loginLink = document.createElement('div');
-    loginLink.id = 'login-link';
-    loginLink.style.cssText = 'display: inline-block; margin-left: 20px;';
-    
-    const user = JSON.parse(localStorage.getItem('user'));
-    if (user) {
-        updateUserUI(user);
-    } else {
-        loginLink.innerHTML = '<a href="#" class="login-btn" style="color: #333; text-decoration: none; font-weight: bold; padding: 8px 16px; border: 1px solid #007bff; border-radius: 4px; background: #007bff; color: white;">Login</a>';
-        
-        const loginBtn = loginLink.querySelector('.login-btn');
-        if (loginBtn) {
-            loginBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                openLoginForm();
-            });
-        }
-    }
-    
-    // Try to add to header or navigation
-    const header = document.querySelector('header, .header, nav, .nav');
-    if (header) {
-        header.appendChild(loginLink);
-    } else {
-        document.body.insertBefore(loginLink, document.body.firstChild);
-    }
-}
-
-function setupForgotPassword() {
-    const forgotPasswordLinks = document.querySelectorAll('.forgot-password, .forgot-password-link, a[href*="forgot"]');
-    forgotPasswordLinks.forEach(link => {
-        link.addEventListener('click', function(e) {
+    // Forgot password functionality
+    const forgotPasswordLink = document.getElementById('forgot-password-link');
+    if (forgotPasswordLink) {
+        forgotPasswordLink.addEventListener('click', function(e) {
             e.preventDefault();
-            handleForgotPassword();
+            // Close login modal and open forgot password modal
+            document.getElementById('login-modal').style.display = 'none';
+            showForgotPasswordModal();
         });
-    });
-}
+    }
+    
+    // Back to login from forgot password
+    const backToLogin = document.getElementById('back-to-login');
+    if (backToLogin) {
+        backToLogin.addEventListener('click', function(e) {
+            e.preventDefault();
+            document.getElementById('forgot-password-modal').style.display = 'none';
+            document.getElementById('login-modal').style.display = 'flex';
+        });
+    }
+    
+    
+// COMPLETE FORGOT PASSWORD SOLUTION
+document.addEventListener('DOMContentLoaded', function() {
+    initializeForgotPassword();
+    debugUsers(); // Remove this after testing
+});
 
-function checkExistingUser() {
-    const user = JSON.parse(localStorage.getItem('user'));
-    if (user) {
-        console.log('User found in localStorage:', user.name);
-        updateUserUI(user);
+function initializeForgotPassword() {
+    // Forgot password link click
+    const forgotLink = document.getElementById('forgot-password-link');
+    if (forgotLink) {
+        console.log("Found forgot password link");
+        forgotLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            console.log("Forgot password clicked");
+            openForgotPasswordModal();
+        });
     } else {
-        console.log('No user found in localStorage');
-    }
-    addLogoutButton();
-}
-
-function handleLoginFromForm() {
-    console.log('Handling login from existing form...');
-    
-    // Get email and password from existing form
-    const emailElement = document.getElementById('login-email');
-    const passwordElement = document.getElementById('login-password');
-    
-    if (!emailElement || !passwordElement) {
-        console.error('Login form elements not found, creating dynamic form instead');
-        openLoginForm();
-        return;
+        console.log("Forgot password link NOT found");
     }
     
-    const email = emailElement.value;
-    const password = passwordElement.value;
-    
-    processLogin(email, password);
-}
-
-function handleLogin(email, password) {
-    console.log('Handling login with credentials...');
-    processLogin(email, password);
-}
-
-function processLogin(email, password) {
-    // Simple validation
-    if (!email || !password) {
-        showNotification('Please fill in all fields', 'error');
-        return;
+    // Forgot password form submission
+    const forgotForm = document.getElementById('forgot-password-form');
+    if (forgotForm) {
+        forgotForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            console.log("Forgot password form submitted");
+            processForgotPassword();
+        });
     }
     
-    // Check user credentials
-    const users = JSON.parse(localStorage.getItem('users')) || [];
-    const user = users.find(u => u.email === email && u.password === password);
+    // Close buttons
+    const closeForgot = document.querySelector('.close-forgot');
+    if (closeForgot) {
+        closeForgot.addEventListener('click', closeForgotPasswordModal);
+    }
+}
+
+function openForgotPasswordModal() {
+    console.log("Opening forgot password modal");
     
-    if (user) {
-        // Login successful
-        localStorage.setItem('user', JSON.stringify(user));
-        showNotification('Login successful!', 'success');
+    // Close login modal first
+    const loginModal = document.getElementById('login-modal');
+    if (loginModal) {
+        loginModal.style.display = 'none';
+    }
+    
+    // Open forgot password modal
+    const forgotModal = document.getElementById('forgot-password-modal');
+    if (forgotModal) {
+        forgotModal.style.display = 'flex';
         
-        // Close any open modals or forms
-        closeDynamicForms();
-        closeModals();
+        // Pre-fill with email from login form if available
+        const loginEmail = document.getElementById('email');
+        const forgotEmail = document.getElementById('forgot-email');
+        if (loginEmail && loginEmail.value && forgotEmail) {
+            forgotEmail.value = loginEmail.value;
+            console.log("Prefilled email:", loginEmail.value);
+        }
         
-        // Update UI for logged in user
-        updateUserUI(user);
-        
-        // Reload page to update all components
+        // Focus on email input
         setTimeout(() => {
-            window.location.reload();
-        }, 1500);
+            if (forgotEmail) forgotEmail.focus();
+        }, 100);
     } else {
-        showNotification('Invalid email or password', 'error');
+        console.log("Forgot password modal NOT found");
     }
 }
 
-function handleRegistrationFromForm() {
-    console.log('Handling registration from existing form...');
-    
-    // Get registration form elements
-    const nameElement = document.getElementById('reg-name');
-    const emailElement = document.getElementById('reg-email');
-    const phoneElement = document.getElementById('reg-phone');
-    const passwordElement = document.getElementById('reg-password');
-    const confirmPasswordElement = document.getElementById('reg-confirm-password');
-    
-    if (!nameElement || !emailElement || !phoneElement || !passwordElement || !confirmPasswordElement) {
-        console.error('Registration form elements not found, creating dynamic form instead');
-        createDynamicRegisterForm();
-        return;
+function closeForgotPasswordModal() {
+    const forgotModal = document.getElementById('forgot-password-modal');
+    if (forgotModal) {
+        forgotModal.style.display = 'none';
     }
-    
-    const name = nameElement.value;
-    const email = emailElement.value;
-    const phone = phoneElement.value;
-    const password = passwordElement.value;
-    const confirmPassword = confirmPasswordElement.value;
-    
-    processRegistration(name, email, phone, password, confirmPassword);
 }
 
-function handleRegistration(name, email, phone, password, confirmPassword) {
-    console.log('Handling registration...');
-    processRegistration(name, email, phone, password, confirmPassword);
-}
-
-function processRegistration(name, email, phone, password, confirmPassword) {
-    // Validation
-    if (!name || !email || !phone || !password || !confirmPassword) {
-        showNotification('Please fill in all fields', 'error');
-        return;
-    }
+function processForgotPassword() {
+    const emailInput = document.getElementById('forgot-email');
+    const email = emailInput ? emailInput.value.trim() : '';
     
-    if (password !== confirmPassword) {
-        showNotification('Passwords do not match', 'error');
-        return;
-    }
+    console.log("Processing forgot password for email:", email);
     
-    if (password.length < 6) {
-        showNotification('Password must be at least 6 characters', 'error');
+    if (!email) {
+        showNotification('Please enter your email address', 'error');
         return;
     }
     
@@ -235,559 +223,148 @@ function processRegistration(name, email, phone, password, confirmPassword) {
         return;
     }
     
-    // Check if user already exists
+    // Check if user exists - IMPORTANT: Case sensitive search
     const users = JSON.parse(localStorage.getItem('users')) || [];
-    if (users.find(u => u.email === email)) {
-        showNotification('User with this email already exists', 'error');
-        return;
+    console.log("Searching in users:", users);
+    
+    // Try case-insensitive search
+    const user = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+    
+    if (user) {
+        console.log("USER FOUND:", user);
+        // SUCCESS - Show confirmation
+        showSuccessMessage(email, user.password);
+    } else {
+        console.log("USER NOT FOUND. Available emails:", users.map(u => u.email));
+        // ERROR - User not found
+        showNotification('❌ No account found with this email address. Please check your email or register first.', 'error');
+        if (emailInput) emailInput.focus();
     }
+}
+
+function showSuccessMessage(email, password) {
+    console.log("Showing success for:", email);
     
-    // Create new user
-    const newUser = {
-        id: Date.now(),
-        name,
-        email,
-        phone,
-        password
-    };
+    // Close forgot password modal
+    closeForgotPasswordModal();
     
-    users.push(newUser);
-    localStorage.setItem('users', JSON.stringify(users));
+    // Show success notification
+    showNotification(`✅ Password reset instructions sent to ${email}`, 'success');
     
-    // Auto login after registration
-    localStorage.setItem('user', JSON.stringify(newUser));
-    showNotification('Registration successful! You are now logged in.', 'success');
-    
-    // Close any open forms
-    closeDynamicForms();
-    closeModals();
-    
-    // Update UI for logged in user
-    updateUserUI(newUser);
-    
-    // Reload page to update all components
+    // Show detailed success message
     setTimeout(() => {
-        window.location.reload();
-    }, 1500);
-}
-
-function openLoginForm() {
-    console.log('Opening login form...');
-    
-    // First try to open existing modal
-    const loginModal = document.getElementById('login-modal');
-    if (loginModal) {
-        loginModal.style.display = 'block';
-        return;
-    }
-    
-    // If no modal exists, create a dynamic login form
-    createDynamicLoginForm();
-}
-
-function createDynamicLoginForm() {
-    console.log('Creating dynamic login form...');
-    
-    // Remove existing dynamic form if any
-    closeDynamicForms();
-    
-    // Create overlay
-    const overlay = document.createElement('div');
-    overlay.id = 'login-overlay';
-    overlay.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0,0,0,0.5);
-        z-index: 9999;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-    `;
-    
-    // Create login form
-    const loginForm = document.createElement('div');
-    loginForm.id = 'dynamic-login-form';
-    loginForm.style.cssText = `
-        background: white;
-        padding: 40px;
-        border-radius: 15px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-        z-index: 10000;
-        width: 400px;
-        max-width: 90%;
-        position: relative;
-    `;
-    
-    loginForm.innerHTML = `
-        <h3 style="margin-bottom: 25px; text-align: center; color: #333; font-size: 24px;">Login</h3>
-        <form id="dynamic-login-form-element">
-            <div style="margin-bottom: 20px;">
-                <label style="display: block; margin-bottom: 8px; color: #555; font-weight: bold; font-size: 14px;">Email Address</label>
-                <input type="email" id="dynamic-email" placeholder="Enter your email" required 
-                    style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 14px; transition: border-color 0.3s;">
-            </div>
-            <div style="margin-bottom: 25px;">
-                <label style="display: block; margin-bottom: 8px; color: #555; font-weight: bold; font-size: 14px;">Password</label>
-                <input type="password" id="dynamic-password" placeholder="Enter your password" required 
-                    style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 14px; transition: border-color 0.3s;">
-            </div>
-            <button type="submit" 
-                style="width: 100%; padding: 15px; background: #007bff; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; transition: background-color 0.3s;">
-                Sign In
-            </button>
-        </form>
-        <div style="text-align: center; margin-top: 25px; padding-top: 20px; border-top: 1px solid #eee;">
-            <span style="color: #666; font-size: 14px;">Don't have an account? </span>
-            <a href="#" id="show-register-dynamic" style="color: #007bff; text-decoration: none; font-weight: bold; font-size: 14px;">Create Account</a>
-        </div>
-        <div style="text-align: center; margin-top: 15px;">
-            <a href="#" id="forgot-password-dynamic" style="color: #666; text-decoration: none; font-size: 13px;">Forgot your password?</a>
-        </div>
-        <button onclick="closeDynamicForms()" 
-            style="position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 24px; cursor: pointer; color: #666; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: background-color 0.3s;">
-            ×
-        </button>
-    `;
-    
-    // Add to page
-    overlay.appendChild(loginForm);
-    document.body.appendChild(overlay);
-    
-    // Add hover effects
-    const inputs = loginForm.querySelectorAll('input');
-    inputs.forEach(input => {
-        input.addEventListener('focus', function() {
-            this.style.borderColor = '#007bff';
-        });
-        input.addEventListener('blur', function() {
-            this.style.borderColor = '#ddd';
-        });
-    });
-    
-    const submitBtn = loginForm.querySelector('button[type="submit"]');
-    if (submitBtn) {
-        submitBtn.addEventListener('mouseenter', function() {
-            this.style.backgroundColor = '#0056b3';
-        });
-        submitBtn.addEventListener('mouseleave', function() {
-            this.style.backgroundColor = '#007bff';
-        });
-    }
-    
-    // Add event listeners
-    const form = document.getElementById('dynamic-login-form-element');
-    if (form) {
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const email = document.getElementById('dynamic-email').value;
-            const password = document.getElementById('dynamic-password').value;
-            
-            handleLogin(email, password);
-        });
-    }
-    
-    // Show register form
-    const showRegister = document.getElementById('show-register-dynamic');
-    if (showRegister) {
-        showRegister.addEventListener('click', function(e) {
-            e.preventDefault();
-            closeDynamicForms();
-            createDynamicRegisterForm();
-        });
-    }
-    
-    // Forgot password
-    const forgotPassword = document.getElementById('forgot-password-dynamic');
-    if (forgotPassword) {
-        forgotPassword.addEventListener('click', function(e) {
-            e.preventDefault();
-            closeDynamicForms();
-            handleForgotPassword();
-        });
-    }
-    
-    // Close when clicking overlay
-    overlay.addEventListener('click', function(e) {
-        if (e.target === overlay) {
-            closeDynamicForms();
+        const message = `🎉 Password Recovery Successful!\n\n📧 Email: ${email}\n🔑 Password: ${password}\n\n💡 In a real application, reset instructions would be sent to your email.\n\nClick OK to continue.`;
+        alert(message);
+        
+        // Reopen login modal
+        const loginModal = document.getElementById('login-modal');
+        if (loginModal) {
+            loginModal.style.display = 'flex';
         }
-    });
+    }, 1000);
 }
 
-function createDynamicRegisterForm() {
-    console.log('Creating dynamic registration form...');
-    
-    // Remove existing dynamic form if any
-    closeDynamicForms();
-    
-    // Create overlay
-    const overlay = document.createElement('div');
-    overlay.id = 'register-overlay';
-    overlay.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0,0,0,0.5);
-        z-index: 9999;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-    `;
-    
-    // Create register form
-    const registerForm = document.createElement('div');
-    registerForm.id = 'dynamic-register-form';
-    registerForm.style.cssText = `
-        background: white;
-        padding: 40px;
-        border-radius: 15px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-        z-index: 10000;
-        width: 450px;
-        max-width: 90%;
-        max-height: 90vh;
-        overflow-y: auto;
-        position: relative;
-    `;
-    
-    registerForm.innerHTML = `
-        <h3 style="margin-bottom: 25px; text-align: center; color: #333; font-size: 24px;">Create Account</h3>
-        <form id="dynamic-register-form-element">
-            <div style="margin-bottom: 15px;">
-                <label style="display: block; margin-bottom: 8px; color: #555; font-weight: bold; font-size: 14px;">Full Name</label>
-                <input type="text" id="dynamic-reg-name" placeholder="Enter your full name" required 
-                    style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 14px; transition: border-color 0.3s;">
-            </div>
-            <div style="margin-bottom: 15px;">
-                <label style="display: block; margin-bottom: 8px; color: #555; font-weight: bold; font-size: 14px;">Email Address</label>
-                <input type="email" id="dynamic-reg-email" placeholder="Enter your email" required 
-                    style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 14px; transition: border-color 0.3s;">
-            </div>
-            <div style="margin-bottom: 15px;">
-                <label style="display: block; margin-bottom: 8px; color: #555; font-weight: bold; font-size: 14px;">Phone Number</label>
-                <input type="tel" id="dynamic-reg-phone" placeholder="Enter your phone number" required 
-                    style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 14px; transition: border-color 0.3s;">
-            </div>
-            <div style="margin-bottom: 15px;">
-                <label style="display: block; margin-bottom: 8px; color: #555; font-weight: bold; font-size: 14px;">Password</label>
-                <input type="password" id="dynamic-reg-password" placeholder="Create password (min 6 characters)" required 
-                    style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 14px; transition: border-color 0.3s;">
-            </div>
-            <div style="margin-bottom: 25px;">
-                <label style="display: block; margin-bottom: 8px; color: #555; font-weight: bold; font-size: 14px;">Confirm Password</label>
-                <input type="password" id="dynamic-reg-confirm-password" placeholder="Confirm your password" required 
-                    style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 14px; transition: border-color 0.3s;">
-            </div>
-            <button type="submit" 
-                style="width: 100%; padding: 15px; background: #28a745; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; transition: background-color 0.3s;">
-                Create Account
-            </button>
-        </form>
-        <div style="text-align: center; margin-top: 25px; padding-top: 20px; border-top: 1px solid #eee;">
-            <span style="color: #666; font-size: 14px;">Already have an account? </span>
-            <a href="#" id="show-login-dynamic" style="color: #007bff; text-decoration: none; font-weight: bold; font-size: 14px;">Sign In</a>
-        </div>
-        <button onclick="closeDynamicForms()" 
-            style="position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 24px; cursor: pointer; color: #666; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: background-color 0.3s;">
-            ×
-        </button>
-    `;
-    
-    // Add to page
-    overlay.appendChild(registerForm);
-    document.body.appendChild(overlay);
-    
-    // Add hover effects
-    const inputs = registerForm.querySelectorAll('input');
-    inputs.forEach(input => {
-        input.addEventListener('focus', function() {
-            this.style.borderColor = '#007bff';
-        });
-        input.addEventListener('blur', function() {
-            this.style.borderColor = '#ddd';
-        });
-    });
-    
-    const submitBtn = registerForm.querySelector('button[type="submit"]');
-    if (submitBtn) {
-        submitBtn.addEventListener('mouseenter', function() {
-            this.style.backgroundColor = '#218838';
-        });
-        submitBtn.addEventListener('mouseleave', function() {
-            this.style.backgroundColor = '#28a745';
-        });
+// TEST FUNCTION - Create a test user if none exists
+function createTestUser() {
+    const users = JSON.parse(localStorage.getItem('users')) || [];
+    if (users.length === 0) {
+        const testUser = {
+            id: Date.now(),
+            name: "Test User",
+            email: "test@example.com", 
+            phone: "1234567890",
+            password: "test123"
+        };
+        users.push(testUser);
+        localStorage.setItem('users', JSON.stringify(users));
+        console.log("Created test user:", testUser);
+        showNotification('Test user created: test@example.com / test123', 'success');
     }
+}
+
+// Call this to create a test user
+// createTestUser(); // Uncomment this line if you want to create a test user
     
-    // Add event listeners
-    const form = document.getElementById('dynamic-register-form-element');
-    if (form) {
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const name = document.getElementById('dynamic-reg-name').value;
-            const email = document.getElementById('dynamic-reg-email').value;
-            const phone = document.getElementById('dynamic-reg-phone').value;
-            const password = document.getElementById('dynamic-reg-password').value;
-            const confirmPassword = document.getElementById('dynamic-reg-confirm-password').value;
-            
-            handleRegistration(name, email, phone, password, confirmPassword);
-        });
+    // Modal functionality
+    setupModalFunctionality();
+    
+    // Check existing user
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (user) {
+        updateUserUI(user);
     }
-    
-    // Show login form
-    const showLogin = document.getElementById('show-login-dynamic');
-    if (showLogin) {
-        showLogin.addEventListener('click', function(e) {
-            e.preventDefault();
-            closeDynamicForms();
-            createDynamicLoginForm();
-        });
-    }
-    
-    // Close when clicking overlay
-    overlay.addEventListener('click', function(e) {
-        if (e.target === overlay) {
-            closeDynamicForms();
-        }
-    });
-}
-
-function closeDynamicForms() {
-    const overlays = document.querySelectorAll('#login-overlay, #register-overlay');
-    overlays.forEach(overlay => overlay.remove());
-    
-    const dynamicForms = document.querySelectorAll('#dynamic-login-form, #dynamic-register-form');
-    dynamicForms.forEach(form => form.remove());
-}
-
-function closeModals() {
-    const modals = ['login-modal', 'register-modal'];
-    modals.forEach(modalId => {
-        const modal = document.getElementById(modalId);
-        if (modal) {
-            modal.style.display = 'none';
-        }
-    });
-}
-
-// Keep all the other functions exactly the same (updateUserUI, addLogoutButton, handleLogout, handleForgotPassword, showNotification)
+});
 
 function updateUserUI(user) {
     const loginLink = document.getElementById('login-link');
-    if (loginLink) {
-        loginLink.innerHTML = '';
-        
-        const userDropdown = document.createElement('div');
+    if (loginLink && loginLink.parentNode) {
+        const userDropdown = document.createElement('li');
         userDropdown.className = 'user-dropdown';
-        userDropdown.style.cssText = `
-            position: relative;
-            display: inline-block;
+        userDropdown.innerHTML = `
+            <a href="#" class="nav-link user-button">Hi, ${user.name.split(' ')[0]} <i class="fas fa-chevron-down"></i></a>
+            <div class="user-dropdown-menu" style="display: none; position: absolute; background: white; padding: 10px; border-radius: 5px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                <a href="#" class="profile-btn" style="display: block; padding: 5px 10px; color: #333; text-decoration: none;">Profile</a>
+                <a href="#" class="logout-btn" style="display: block; padding: 5px 10px; color: #e74c3c; text-decoration: none;">Logout</a>
+            </div>
         `;
         
-        const userGreeting = document.createElement('span');
-        userGreeting.textContent = `Hi, ${user.name.split(' ')[0]}`;
-        userGreeting.style.cssText = `
-            cursor: pointer;
-            padding: 8px 16px;
-            display: block;
-            color: #333;
-            font-weight: bold;
-            background: #f8f9fa;
-            border-radius: 4px;
-            border: 1px solid #dee2e6;
-        `;
+        loginLink.parentNode.replaceChild(userDropdown, loginLink);
         
-        const dropdownMenu = document.createElement('div');
-        dropdownMenu.className = 'dropdown-menu';
-        dropdownMenu.style.cssText = `
-            position: absolute;
-            top: 100%;
-            right: 0;
-            background: white;
-            min-width: 180px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
-            border-radius: 8px;
-            display: none;
-            z-index: 1000;
-            border: 1px solid #ddd;
-            padding: 5px 0;
-        `;
-        
-        const profileButton = document.createElement('button');
-        profileButton.textContent = '👤 Profile';
-        profileButton.style.cssText = `
-            width: 100%;
-            padding: 12px 15px;
-            border: none;
-            background: none;
-            text-align: left;
-            cursor: pointer;
-            color: #333;
-            font-size: 14px;
-            transition: background-color 0.2s;
-        `;
-        
-        profileButton.addEventListener('mouseenter', function() {
-            this.style.backgroundColor = '#f8f9fa';
-        });
-        
-        profileButton.addEventListener('mouseleave', function() {
-            this.style.backgroundColor = 'white';
-        });
-        
-        profileButton.addEventListener('click', function() {
-            showNotification(`Welcome back, ${user.name}!`, 'success');
-            dropdownMenu.style.display = 'none';
-        });
-        
-        const logoutButton = document.createElement('button');
-        logoutButton.textContent = '🚪 Logout';
-        logoutButton.style.cssText = `
-            width: 100%;
-            padding: 12px 15px;
-            border: none;
-            background: none;
-            text-align: left;
-            cursor: pointer;
-            color: #dc3545;
-            font-size: 14px;
-            transition: background-color 0.2s;
-        `;
-        
-        logoutButton.addEventListener('mouseenter', function() {
-            this.style.backgroundColor = '#f8f9fa';
-        });
-        
-        logoutButton.addEventListener('mouseleave', function() {
-            this.style.backgroundColor = 'white';
-        });
-        
-        logoutButton.addEventListener('click', function() {
-            handleLogout();
-        });
-        
-        dropdownMenu.appendChild(profileButton);
-        dropdownMenu.appendChild(logoutButton);
-        userDropdown.appendChild(userGreeting);
-        userDropdown.appendChild(dropdownMenu);
-        loginLink.appendChild(userDropdown);
-        
-        userGreeting.addEventListener('click', function(e) {
-            e.stopPropagation();
-            dropdownMenu.style.display = dropdownMenu.style.display === 'block' ? 'none' : 'block';
-        });
-        
-        document.addEventListener('click', function() {
-            dropdownMenu.style.display = 'none';
-        });
-    }
-}
-
-function addLogoutButton() {
-    const user = JSON.parse(localStorage.getItem('user'));
-    const existingLogoutBtn = document.getElementById('logout-btn');
-    
-    if (user && !existingLogoutBtn) {
-        const logoutBtn = document.createElement('button');
-        logoutBtn.id = 'logout-btn';
-        logoutBtn.textContent = 'Logout';
-        logoutBtn.style.cssText = `
-            margin-left: 15px;
-            padding: 8px 16px;
-            background: #dc3545;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: background-color 0.3s;
-        `;
-        
-        logoutBtn.addEventListener('mouseenter', function() {
-            this.style.backgroundColor = '#c82333';
-        });
-        
-        logoutBtn.addEventListener('mouseleave', function() {
-            this.style.backgroundColor = '#dc3545';
-        });
-        
-        logoutBtn.addEventListener('click', function(e) {
+        userDropdown.querySelector('.user-button').addEventListener('click', function(e) {
             e.preventDefault();
-            handleLogout();
+            const menu = userDropdown.querySelector('.user-dropdown-menu');
+            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
         });
         
-        const headerActions = document.querySelector('.header-actions, .nav-actions, nav, header');
-        if (headerActions) {
-            headerActions.appendChild(logoutBtn);
-        } else {
-            const loginLink = document.getElementById('login-link');
-            if (loginLink && loginLink.parentNode) {
-                loginLink.parentNode.insertBefore(logoutBtn, loginLink.nextSibling);
-            }
-        }
-    } else if (!user && existingLogoutBtn) {
-        existingLogoutBtn.remove();
+        userDropdown.querySelector('.logout-btn').addEventListener('click', function(e) {
+            e.preventDefault();
+            localStorage.removeItem('user');
+            showNotification('Logged out successfully', 'success');
+            setTimeout(() => location.reload(), 1000);
+        });
     }
 }
 
-function handleLogout() {
-    localStorage.removeItem('user');
-    showNotification('Logged out successfully!', 'success');
+function setupModalFunctionality() {
+    const closeButtons = document.querySelectorAll('.modal .close');
+    closeButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            this.closest('.modal').style.display = 'none';
+        });
+    });
     
-    const logoutBtn = document.getElementById('logout-btn');
-    if (logoutBtn) {
-        logoutBtn.remove();
+    const modals = document.querySelectorAll('.modal');
+    modals.forEach(modal => {
+        modal.addEventListener('click', function(e) {
+            if (e.target === this) this.style.display = 'none';
+        });
+    });
+    
+    const registerLink = document.getElementById('register-link');
+    const loginFromRegister = document.getElementById('login-from-register');
+    
+    if (registerLink) {
+        registerLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            document.getElementById('login-modal').style.display = 'none';
+            document.getElementById('register-modal').style.display = 'flex';
+        });
     }
     
-    // Simply reset the UI to the logged-out state.
-    setupLoginLink();
-    
-    // No need to reload the page, which can cause state loss
-    // setTimeout(() => {
-    //     window.location.reload();
-    // }, 1000);
-}
-
-function handleForgotPassword() {
-    const email = prompt('Please enter your email address to recover your password:');
-    
-    if (!email) {
-        return;
+    if (loginFromRegister) {
+        loginFromRegister.addEventListener('click', function(e) {
+            e.preventDefault();
+            document.getElementById('register-modal').style.display = 'none';
+            document.getElementById('login-modal').style.display = 'flex';
+        });
     }
     
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-        showNotification('Please enter a valid email address', 'error');
-        return;
-    }
-    
-    const users = JSON.parse(localStorage.getItem('users')) || [];
-    const user = users.find(u => u.email === email);
-    
-    if (user) {
-        showNotification(`Password recovery email sent to ${email}`, 'success');
-        
-        setTimeout(() => {
-            const message = `Demo: Your password is "${user.password}".\n\nIn a real application, this would be securely sent to your email.\n\nWould you like to copy it to clipboard?`;
-            
-            if (confirm(message)) {
-                if (navigator.clipboard && navigator.clipboard.writeText) {
-                    navigator.clipboard.writeText(user.password).then(() => {
-                        showNotification('Password copied to clipboard!', 'success');
-                    }).catch(() => {
-                        showNotification('Password recovery information displayed', 'info');
-                    });
-                } else {
-                    showNotification('Password recovery information displayed', 'info');
-                }
-            }
-        }, 500);
-    } else {
-        showNotification('No account found with this email address', 'error');
+    const loginNavLink = document.getElementById('login-link');
+    if (loginNavLink) {
+        loginNavLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            document.getElementById('login-modal').style.display = 'flex';
+        });
     }
 }
 
@@ -795,40 +372,245 @@ function showNotification(message, type = 'info') {
     const notification = document.createElement('div');
     notification.className = `notification ${type}`;
     notification.textContent = message;
-    
-    const backgroundColor = type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : '#17a2b8';
-    
     notification.style.cssText = `
-        position: fixed;
-        top: 100px;
-        right: 20px;
-        padding: 15px 20px;
-        background-color: ${backgroundColor};
-        color: white;
-        border-radius: 8px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        z-index: 10000;
-        transform: translateX(100%);
-        transition: transform 0.3s ease;
-        font-family: Arial, sans-serif;
-        font-size: 14px;
-        max-width: 300px;
-        word-wrap: break-word;
-        font-weight: bold;
+        position: fixed; top: 100px; right: 20px; padding: 15px 20px; 
+        background-color: ${type === 'success' ? '#4CAF50' : type === 'error' ? '#F44336' : '#2196F3'}; 
+        color: white; border-radius: 4px; z-index: 3000;
     `;
     
     document.body.appendChild(notification);
-    
     setTimeout(() => {
-        notification.style.transform = 'translateX(0)';
-    }, 10);
-    
-    setTimeout(() => {
-        notification.style.transform = 'translateX(100%)';
-        setTimeout(() => {
-            if (document.body.contains(notification)) {
-                document.body.removeChild(notification);
-            }
-        }, 300);
+        if (document.body.contains(notification)) {
+            document.body.removeChild(notification);
+        }
     }, 3000);
 }
+
+// Cart functionality (keep your existing cart functions)
+document.addEventListener('DOMContentLoaded', function() {
+    updateCartDisplay();
+    
+    const checkoutBtn = document.getElementById('checkout-btn');
+    if (checkoutBtn) {
+        checkoutBtn.addEventListener('click', proceedToCheckout);
+    }
+    
+    const addressForm = document.getElementById('delivery-address-form');
+    if (addressForm) {
+        addressForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            placeOrder();
+        });
+    }
+});
+
+function proceedToCheckout() {
+    if (!isLoggedIn()) {
+        document.getElementById('login-modal').style.display = 'block';
+        return;
+    }
+    
+    const cart = JSON.parse(localStorage.getItem('cart')) || [];
+    if (cart.length === 0) {
+        showNotification('Your cart is empty', 'error');
+        return;
+    }
+    
+    document.getElementById('address-modal').style.display = 'block';
+}
+
+function placeOrder() {
+    const addressForm = document.getElementById('delivery-address-form');
+    const cart = JSON.parse(localStorage.getItem('cart')) || [];
+    
+    if (cart.length === 0) {
+        showNotification('Your cart is empty', 'error');
+        return;
+    }
+    
+    const requiredFields = ['delivery_name', 'delivery_phone', 'delivery_address', 'delivery_city', 'delivery_pincode'];
+    let allFilled = true;
+    
+    requiredFields.forEach(field => {
+        const input = addressForm.querySelector(`[name="${field}"]`);
+        if (input && !input.value.trim()) {
+            allFilled = false;
+            input.style.borderColor = 'red';
+        }
+    });
+    
+    if (!allFilled) {
+        showNotification('Please fill all fields', 'error');
+        return;
+    }
+    
+    const cartTotal = cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+    const submitBtn = addressForm.querySelector('.btn-primary');
+    const originalText = submitBtn.textContent;
+    
+    submitBtn.textContent = 'Placing Order...';
+    submitBtn.disabled = true;
+    
+    const formData = new FormData(addressForm);
+    formData.append('cart_total', cartTotal);
+    
+    fetch('process_order.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showOrderSuccess(data.order_id);
+        } else {
+            showNotification('Order failed', 'error');
+        }
+    })
+    .catch(error => {
+        showNotification('Network error', 'error');
+    })
+    .finally(() => {
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
+    });
+}
+
+function showOrderSuccess(orderId) {
+    localStorage.removeItem('cart');
+    document.getElementById('address-modal').style.display = 'none';
+    updateCartDisplay();
+    updateCartCount();
+    showNotification(`Order placed! ID: ${orderId}`, 'success');
+}
+
+function updateCartDisplay() {
+    const container = document.getElementById('cart-items-container');
+    const subtotalEl = document.getElementById('cart-subtotal');
+    const taxEl = document.getElementById('cart-tax');
+    const totalEl = document.getElementById('cart-total-amount');
+    
+    if (!container) return;
+    
+    const cart = JSON.parse(localStorage.getItem('cart')) || [];
+    container.innerHTML = '';
+    
+    let subtotal = 0;
+    
+    cart.forEach(item => {
+        subtotal += item.price * item.quantity;
+        const itemEl = document.createElement('div');
+        itemEl.className = 'cart-item';
+        itemEl.innerHTML = `
+            <div>${item.name} - ₹${item.price} x ${item.quantity}</div>
+            <button onclick="removeFromCart(${item.id})">Remove</button>
+        `;
+        container.appendChild(itemEl);
+    });
+    
+    const tax = subtotal * 0.02;
+    const total = subtotal + tax;
+    
+    if (subtotalEl) subtotalEl.textContent = subtotal.toFixed(2);
+    if (taxEl) taxEl.textContent = tax.toFixed(2);
+    if (totalEl) totalEl.textContent = total.toFixed(2);
+}
+
+function removeFromCart(itemId) {
+    let cart = JSON.parse(localStorage.getItem('cart')) || [];
+    cart = cart.filter(item => item.id !== itemId);
+    localStorage.setItem('cart', JSON.stringify(cart));
+    updateCartDisplay();
+    updateCartCount();
+}
+
+function updateCartCount() {
+    const cart = JSON.parse(localStorage.getItem('cart')) || [];
+    const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+    const countEl = document.querySelector('.cart-count');
+    if (countEl) countEl.textContent = totalItems;
+}
+
+function isLoggedIn() {
+    return localStorage.getItem('user') !== null;
+}
+// ACCURATE FORGOT PASSWORD FIX
+document.addEventListener('DOMContentLoaded', function() {
+    // Wait for modal to be ready
+    setTimeout(function() {
+        const forgotLink = document.getElementById('forgot-password-link');
+        console.log("Looking for forgot link:", forgotLink);
+        
+        if (forgotLink) {
+            console.log("Found forgot password link!");
+            
+            // Remove any existing event listeners
+            const newForgotLink = forgotLink.cloneNode(true);
+            forgotLink.parentNode.replaceChild(newForgotLink, forgotLink);
+            
+            // Add click event
+            document.getElementById('forgot-password-link').onclick = function(e) {
+                e.preventDefault();
+                console.log("Forgot password clicked!");
+                
+                // Get email from login form
+                const loginEmail = document.getElementById('email');
+                const userEmail = loginEmail ? loginEmail.value : '';
+                
+                const email = prompt("Enter your email to reset password:", userEmail);
+                
+                if (email) {
+                    const users = JSON.parse(localStorage.getItem('users')) || [];
+                    console.log("All users:", users);
+                    const user = users.find(u => u.email === email);
+                    
+                    if (user) {
+                        alert(`Password recovery successful!\n\nYour password is: ${user.password}\n\n(In a real application, reset instructions would be sent to your email)`);
+                    } else {
+                        alert('❌ No account found with this email address');
+                    }
+                }
+            };
+        } else {
+            console.log("Forgot password link not found!");
+        }
+    }, 1000);
+});
+// Your existing login.js code...
+
+// ============ DEBUG CODE ============
+console.log("=== FORGOT PASSWORD DEBUG ===");
+
+// Debug function
+function debugUsers() {
+    const users = JSON.parse(localStorage.getItem('users')) || [];
+    console.log("📍 All users in localStorage:", users);
+    console.log("📊 Number of users:", users.length);
+    
+    if (users.length === 0) {
+        console.log("❌ NO USERS FOUND - Please register first!");
+    } else {
+        users.forEach((user, index) => {
+            console.log(`👤 User ${index + 1}: Email: "${user.email}", Password: "${user.password}"`);
+        });
+    }
+    console.log("=============================");
+}
+
+// Test forgot password immediately
+function testForgotPassword() {
+    const email = "test@example.com";
+    const users = JSON.parse(localStorage.getItem('users')) || [];
+    const user = users.find(u => u.email === email);
+    
+    console.log(`🔍 Testing email: "${email}" - Found:`, user ? "YES" : "NO");
+}
+
+// Run debug on page load
+document.addEventListener('DOMContentLoaded', function() {
+    console.log("🔄 Page loaded - checking users...");
+    debugUsers();
+    testForgotPassword();
+});
+
+// Also make debug function global so you can run it anytime
+window.debugUsers = debugUsers;

@@ -1,10 +1,10 @@
-// DOM Content Loaded
+//  Content Loaded
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize the website
     initNavigation();
     initMenu();
     initModals();
-    initSearch();
+    initializeSearch();
     initScrollEffects();
     initDeals();
 });
@@ -345,9 +345,7 @@ function initMenu() {
                         <button class="add-to-cart" data-id="${item.id}">
                             <i class="fas fa-shopping-cart"></i> Add to Cart
                         </button>
-                        <button class="add-to-wishlist" data-id="${item.id}">
-                            <i class="far fa-heart"></i>
-                        </button>
+                       
                     </div>
                 </div>
             `;
@@ -355,19 +353,7 @@ function initMenu() {
         });
         
         // Add event listeners to the new buttons
-        document.querySelectorAll('.add-to-cart').forEach(button => {
-            button.addEventListener('click', function() {
-                const itemId = parseInt(this.getAttribute('data-id'));
-                addToCart(itemId);
-            });
-        });
-        
-        document.querySelectorAll('.add-to-wishlist').forEach(button => {
-            button.addEventListener('click', function() {
-                const itemId = parseInt(this.getAttribute('data-id'));
-                addToWishlist(itemId);
-            });
-        });
+        attachEventListeners();
     }
     
     // Initial render
@@ -569,32 +555,115 @@ function initModals() {
 }
 
 // Search Functionality
-function initSearch() {
+// Search functionality
+function initializeSearch() {
     const searchBar = document.getElementById('search-bar');
     const searchBtn = document.getElementById('search-btn');
     
-    if (searchBtn) {
-        searchBtn.addEventListener('click', function() {
+    // Search when button is clicked
+    searchBtn.addEventListener('click', performSearch);
+    
+    // Search when Enter key is pressed
+    searchBar.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
             performSearch();
-        });
-    }
-    
-    if (searchBar) {
-        searchBar.addEventListener('keyup', function(e) {
-            if (e.key === 'Enter') {
-                performSearch();
-            }
-        });
-    }
-    
-    function performSearch() {
-        const searchTerm = searchBar.value.trim().toLowerCase();
-        if (searchTerm) {
-            // In a real application, this would make an API call
-            // For now, we'll just show an alert
-            showNotification(`Searching for: ${searchTerm}`, 'info');
-            // You would typically filter menu items based on search term
         }
+    });
+    
+    // Optional: Real-time search as user types
+    searchBar.addEventListener('input', function() {
+        if (this.value.length >= 2) { // Start searching after 2 characters
+            performSearch();
+        } else if (this.value.length === 0) {
+            // If search is cleared, show all items
+            filterMenuItems('all');
+        }
+    });
+}
+
+function performSearch() {
+    const searchTerm = document.getElementById('search-bar').value.toLowerCase().trim();
+    
+    if (searchTerm === '') {
+        // If search is empty, show all items
+        filterMenuItems('all');
+        return;
+    }
+    
+    // Filter menu items based on search term
+    const filteredItems = menuItems.filter(item => 
+        item.name.toLowerCase().includes(searchTerm) ||
+        item.description.toLowerCase().includes(searchTerm) ||
+        item.category.toLowerCase().includes(searchTerm)
+    );
+    
+    displayFilteredItems(filteredItems, searchTerm);
+    
+}
+
+function displayFilteredItems(items, searchTerm) {
+    const menuItemsContainer = document.getElementById('menu-items');
+    
+    if (items.length === 0) {
+        menuItemsContainer.innerHTML = `
+            <div class="no-results" style="text-align: center; padding: 40px; color: #666;">
+                <i class="fas fa-search" style="font-size: 48px; margin-bottom: 20px; color: #ccc;"></i>
+                <h3>No items found</h3>
+                <p>No items found for "${searchTerm}". Try searching for something else.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    let html = '';
+    items.forEach(item => {
+        // Use the SAME structure as your regular menu items
+        html += `
+            <div class="menu-item card-hover" data-category="${item.category}">
+                <img src="${item.image}" alt="${item.name}" class="menu-item-img">
+                <div class="menu-item-content">
+                    <h3 class="menu-item-title">${item.name}</h3>
+                    <p class="menu-item-desc">${item.description}</p>
+                    <div class="menu-item-price">₹${item.price}</div>
+                    <div class="menu-item-actions">
+                        <button class="add-to-cart" data-id="${item.id}">
+                            <i class="fas fa-shopping-cart"></i> Add to Cart
+                        </button>
+                        <button class="add-to-wishlist" data-id="${item.id}">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+     // Scroll to menu section after search
+    const menuSection = document.getElementById('menu');
+    if (menuSection) {
+        window.scrollTo({
+            top: menuSection.offsetTop - 80,
+            behavior: 'smooth'
+        });
+    }
+    
+    menuItemsContainer.innerHTML = html;
+    
+    // Re-attach event listeners to the new elements
+    attachEventListeners();
+}
+
+// Update the existing filterMenuItems function to handle search state
+function filterMenuItems(category) {
+    const menuItemsContainer = document.getElementById('menu-items');
+    const searchBar = document.getElementById('search-bar');
+    
+    // Clear search bar when category is changed
+    if (category !== 'all' || category === 'all' && searchBar.value === '') {
+        searchBar.value = '';
+        displayMenuItems(category);
+    } else {
+        // If there's a search term, maintain it
+        performSearch();
     }
 }
 
@@ -646,6 +715,113 @@ function createFallingFood(container) {
         container.appendChild(food);
     }
 }
+
+// Admin Dashboard functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const adminLink = document.getElementById('admin-link');
+    const adminModal = document.getElementById('admin-modal');
+    const closeAdminModal = adminModal.querySelector('.close');
+    
+    // Open admin modal
+    adminLink.addEventListener('click', function(e) {
+        e.preventDefault();
+        adminModal.style.display = 'block';
+        loadAdminData();
+    });
+    
+    // Close admin modal
+    closeAdminModal.addEventListener('click', function() {
+        adminModal.style.display = 'none';
+    });
+    
+    // Tab switching
+    const tabBtns = document.querySelectorAll('.admin-tab-btn');
+    tabBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const tabName = this.getAttribute('data-tab');
+            
+            // Update active tab
+            tabBtns.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Show corresponding tab content
+            document.querySelectorAll('.tab-pane').forEach(pane => {
+                pane.classList.remove('active');
+            });
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+        });
+    });
+    
+    // Load admin data
+    function loadAdminData() {
+        // This would typically fetch data from your backend
+        // For demo purposes, we'll use sample data
+        
+        // Sample users data
+        const users = [
+            { id: 1, name: "John Doe", email: "john@email.com", phone: "9876543210", joinDate: "2024-01-15" },
+            { id: 2, name: "Jane Smith", email: "jane@email.com", phone: "9876543211", joinDate: "2024-01-20" }
+        ];
+        
+        // Sample bookings data
+        const bookings = [
+            { id: "B001", name: "John Doe", date: "2024-01-25", time: "19:00", guests: 4, status: "Confirmed" },
+            { id: "B002", name: "Jane Smith", date: "2024-01-26", time: "20:00", guests: 2, status: "Pending" }
+        ];
+        
+        // Sample orders data
+        const orders = [
+            { id: "BB-12345", customer: "John Doe", items: "Coffee x2, Sandwich", total: "₹450", status: "Delivered", date: "2024-01-24" },
+            { id: "BB-12346", customer: "Jane Smith", items: "Tea, Pastry", total: "₹180", status: "Preparing", date: "2024-01-24" }
+        ];
+        
+        // Populate tables
+        populateUsersTable(users);
+        populateBookingsTable(bookings);
+        populateOrdersTable(orders);
+    }
+    
+    function populateUsersTable(users) {
+        const tbody = document.getElementById('users-table-body');
+        tbody.innerHTML = users.map(user => `
+            <tr>
+                <td>${user.id}</td>
+                <td>${user.name}</td>
+                <td>${user.email}</td>
+                <td>${user.phone}</td>
+                <td>${user.joinDate}</td>
+            </tr>
+        `).join('');
+    }
+    
+    function populateBookingsTable(bookings) {
+        const tbody = document.getElementById('bookings-table-body');
+        tbody.innerHTML = bookings.map(booking => `
+            <tr>
+                <td>${booking.id}</td>
+                <td>${booking.name}</td>
+                <td>${booking.date}</td>
+                <td>${booking.time}</td>
+                <td>${booking.guests}</td>
+                <td><span class="status-badge ${booking.status.toLowerCase()}">${booking.status}</span></td>
+            </tr>
+        `).join('');
+    }
+    
+    function populateOrdersTable(orders) {
+        const tbody = document.getElementById('orders-table-body');
+        tbody.innerHTML = orders.map(order => `
+            <tr>
+                <td>${order.id}</td>
+                <td>${order.customer}</td>
+                <td>${order.items}</td>
+                <td>${order.total}</td>
+                <td><span class="status-badge ${order.status.toLowerCase()}">${order.status}</span></td>
+                <td>${order.date}</td>
+            </tr>
+        `).join('');
+    }
+});
 
 // Cart Functions
 function addToCart(item) {
@@ -766,39 +942,24 @@ function showNotification(message, type = 'info') {
 // Initialize cart count on page load
 updateCartCount();
 
-document.getElementById('delivery-address-form').addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    const formData = new FormData(this);
-    
-    // Show loading state
-    const submitBtn = this.querySelector('.btn-primary');
-    const originalText = submitBtn.textContent;
-    submitBtn.textContent = 'Placing Order...';
-    submitBtn.disabled = true;
-    
-    fetch('process_order.php', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        console.log('Response:', data); // Debug log
-        if (data.success) {
-            alert(data.message);
-            this.reset();
-            document.getElementById('address-form').style.display = 'none';
-            showOrderSuccess(data.order_id);
-        } else {
-            alert('Error: ' + data.errors.join(', '));
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Network error. Please check console for details.');
-    })
-    .finally(() => {
-        submitBtn.textContent = originalText;
-        submitBtn.disabled = false;
+// Helper function to attach event listeners
+function attachEventListeners() {
+    // Add to cart buttons
+    document.querySelectorAll('.add-to-cart').forEach(button => {
+        button.addEventListener('click', function() {
+            const itemId = parseInt(this.getAttribute('data-id'));
+            addToCart(itemId);
+        });
     });
-});
+    
+    // Add to wishlist buttons
+    document.querySelectorAll('.add-to-wishlist').forEach(button => {
+        button.addEventListener('click', function() {
+            const itemId = parseInt(this.getAttribute('data-id'));
+            addToWishlist(itemId);
+        });
+    });
+}
+
+// REMOVED: Duplicate form submission handler that was causing conflicts
+// The form submission is already handled in cart.js
