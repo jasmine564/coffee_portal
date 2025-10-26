@@ -33,7 +33,7 @@ Make sure you have:
 
 ### 2️⃣ Clone the Repository
 ```bash
-git clone https://github.com/<your-username>/<your-repo-name>.git
+git clone https://github.com/jasmine564/coffee_portal.git
 ```
 ### 3️⃣ Run the Project Locally
 
