@@ -65,7 +65,7 @@ Admins can view and manage orders
 | **Server Tools**        | XAMPP, WAMP, or Live Server |
 | **IDE/Editor**          | VS Code                     |
 
-## 🔗 Deployment Options
+## 🚀 Deployment Options
 
 You can host this project easily on:
 
@@ -77,7 +77,7 @@ You can host this project easily on:
 > 💡 Works instantly on any PHP-supported hosting platform.  
 > No database setup required for basic functionality.
 
-## 🔗 License
+##  License
 MIT License
 Feel free to use, modify, and distribute this project with attribution.
 
